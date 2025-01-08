@@ -1,6 +1,5 @@
 // Variables globales pour le contrôle de la carte
 let zoom;
-let regions;
 let cityGroups;
 let width;
 let height;
@@ -129,40 +128,6 @@ const svg = d3.select("#map")
     .attr("preserveAspectRatio", "xMidYMid meet")
     .call(zoomBehavior);
 
-// Ajout du pattern pour le logo
-const defs = svg.append("defs");
-const pattern = defs.append("pattern")
-    .attr("id", "logo-pattern")
-    .attr("width", 30)
-    .attr("height", 30)
-    .attr("patternUnits", "userSpaceOnUse")
-    .attr("x", -15)
-    .attr("y", -15);
-
-pattern.append("image")
-    .attr("href", "images/logo_sans_texte.png")
-    .attr("width", 30)
-    .attr("height", 30)
-    .attr("x", 0)
-    .attr("y", 0);
-
-// Couleurs des régions
-const regionColors = {
-    "Auvergne-Rhône-Alpes": "#8B4C9C",
-    "Bourgogne-Franche-Comté": "#2B5F9C",
-    "Bretagne": "#C4B59D",
-    "Centre-Val de Loire": "#FF8D3F",
-    "Corse": "#6A2848",
-    "Grand Est": "#4CADD3",
-    "Hauts-de-France": "#B5D56A",
-    "Île-de-France": "#7DCEF4",
-    "Normandie": "#8FBE41",
-    "Nouvelle-Aquitaine": "#FF5A5A",
-    "Occitanie": "#E7467C",
-    "Pays de la Loire": "#FFB951",
-    "Provence-Alpes-Côte d'Azur": "#9C3766"
-};
-
 // Coordonnées des villes
 const cities = [
     { name: "TOURS", coords: [0.6833, 47.3833] },
@@ -182,18 +147,37 @@ const cities = [
 ];
 
 // Chargement de la carte
-d3.json("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson")
-    .then(function(france) {
-        // Dessiner les régions
-        regions = d3.select("#viewport")
-            .selectAll("path")
-            .data(france.features)
-            .enter()
+fetch('fra2021.json')
+    .then(response => response.json())
+    .then(france => {
+        // Extraire les coordonnées du contour de la France métropolitaine
+        const coordinates = france.features[0].geometry.coordinates[0];
+        
+        // S'assurer que le polygone est fermé
+        if (JSON.stringify(coordinates[0]) !== JSON.stringify(coordinates[coordinates.length - 1])) {
+            coordinates.push(coordinates[0]);
+        }
+
+        // Créer un polygone fermé
+        const francePolygon = {
+            type: "FeatureCollection",
+            features: [{
+                type: "Feature",
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [coordinates]
+                },
+                properties: france.features[0].properties
+            }]
+        };
+
+        // Dessiner le contour de la France
+        d3.select("#viewport")
             .append("path")
+            .datum(francePolygon)
             .attr("d", path)
-            .attr("class", "region")
-            .attr("fill", d => regionColors[d.properties.nom] || "#CCCCCC")
-            .attr("stroke", "#FFFFFF")
+            .attr("fill", "white")
+            .attr("stroke", "#CCCCCC")
             .attr("stroke-width", "1");
 
         // Ajouter les villes
@@ -240,16 +224,17 @@ d3.json("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/r
 
 // Gestion des raccourcis
 const shortcutsToggle = document.getElementById('shortcuts-toggle');
-const shortcuts = document.querySelector('.shortcuts');
+const shortcutsTooltip = document.querySelector('.shortcuts-tooltip');
 
-shortcutsToggle.addEventListener('click', () => {
-    shortcuts.classList.toggle('visible');
+shortcutsToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    shortcutsTooltip.classList.toggle('active');
 });
 
 // Fermer les raccourcis en cliquant en dehors
 document.addEventListener('click', (event) => {
-    if (!shortcuts.contains(event.target) && !shortcutsToggle.contains(event.target)) {
-        shortcuts.classList.remove('visible');
+    if (!shortcutsTooltip.contains(event.target) && !shortcutsToggle.contains(event.target)) {
+        shortcutsTooltip.classList.remove('active');
     }
 }); 
 
@@ -258,16 +243,20 @@ function normalizeString(str) {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 }
 
-// Fonction pour afficher la modale avec les informations du franchisé
+// Fonction pour afficher les informations du franchisé
 function showFranchiseInfo(cityName) {
     const cleanCityName = cityName.replace('SEGUR', '').trim();
     const franchise = franchises.find(f => normalizeString(f.ville) === normalizeString(cleanCityName));
     
     if (franchise) {
-        console.log("Franchise trouvée:", franchise);
+        // Mettre à jour le titre
+        document.querySelector('.card-title').innerHTML = `SEGUR <span class="city-name">${franchise.ville}</span>`;
         
-        // Mettre à jour le titre de la modale
-        document.querySelector('.modal-title').innerHTML = `SEGUR <span class="city-name">${franchise.ville}</span>`;
+        // Décaler la carte
+        document.querySelector('.map-container').classList.add('shifted');
+        
+        // Afficher le panneau de détails
+        document.querySelector('.franchise-details-panel').classList.add('active');
         
         // Créer les onglets
         const tabsContainer = document.querySelector('.franchise-tabs');
@@ -328,10 +317,6 @@ function showFranchiseInfo(cityName) {
             // Mettre à jour les informations directement
             updateFranchiseDetails(franchise, null);
         }
-        
-        // Afficher la modale
-        document.querySelector('.modal-overlay').classList.add('active');
-        document.querySelector('.franchise-modal').classList.add('active');
     }
 }
 
@@ -595,3 +580,17 @@ window.addEventListener('resize', () => {
            .call(zoomBehavior.transform, d3.zoomIdentity);
     }
 }); 
+
+// Fonction pour fermer le panneau des franchises
+function closeFranchisePanel() {
+    // Remettre la carte à sa position initiale
+    document.querySelector('.map-container').classList.remove('shifted');
+    
+    // Masquer le panneau
+    document.querySelector('.franchise-details-panel').classList.remove('active');
+    
+    // Réinitialiser le marqueur sélectionné
+    d3.selectAll(".city-marker")
+        .classed("selected", false)
+        .attr("r", 4);
+} 

@@ -6,7 +6,6 @@
     <title>Carte de France - Territoires</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -107,30 +106,27 @@
                     <button id="zoom-in">+</button>
                     <button id="zoom-out">-</button>
                     <button id="reset">⌂</button>
-                    <button id="shortcuts-toggle">Raccourcis</button>
+                    <button id="shortcuts-toggle">i</button>
                 </div>
-                <div class="shortcuts">
-                    <h3>Raccourcis</h3>
+                <div class="shortcuts-tooltip">
                     <ul>
-                        <li>Molette : Zoom avant/arrière</li>
-                        <li>Double-clic : Zoom avant</li>
-                        <li>Shift + Double-clic : Zoom arrière</li>
-                        <li>Clic gauche maintenu : Déplacer</li>
-                        <li>Flèches : Déplacer</li>
+                        <li><span class="shortcut-key">Molette</span>Zoom avant/arrière</li>
+                        <li><span class="shortcut-key">Double-clic</span>Zoom avant</li>
+                        <li><span class="shortcut-key">Shift + Double-clic</span>Zoom arrière</li>
+                        <li><span class="shortcut-key">Clic gauche maintenu</span>Déplacer</li>
+                        <li><span class="shortcut-key">Flèches</span>Déplacer</li>
                     </ul>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="modal-overlay">
-        <div class="franchise-modal">
-            <div class="modal-header">
-                <h2 class="modal-title">SEGUR <span class="city-name"></span></h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-content">
-                <div class="franchise-tabs"></div>
-                <div class="franchise-details-container">
+        <div class="franchise-details-panel">
+            <div class="franchise-details-card">
+                <div class="card-header">
+                    <button class="card-close" onclick="closeFranchisePanel()"></button>
+                    <h2 class="card-title">SEGUR <span class="city-name"></span></h2>
+                </div>
+                <div class="card-content">
+                    <div class="franchise-tabs"></div>
                     <div class="franchise-details">
                         <div class="franchise-info-item name">
                             <label>Nom</label>
@@ -150,7 +146,7 @@
                         </div>
                         <div class="franchise-info-item departments">
                             <label>Départements</label>
-                            <p class="franchise-departments"></p>
+                            <div class="franchise-departments"></div>
                         </div>
                     </div>
                 </div>

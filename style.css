@@ -28,7 +28,7 @@ html, body {
     box-shadow: 2px 0 20px rgba(0,0,0,0.1);
     z-index: 1000;
     overflow-y: auto;
-    border-right: 1px solid rgba(0,0,0,0.05);
+    border-right: none;
 }
 
 .franchise-list {
@@ -41,6 +41,11 @@ html, body {
     height: 100vh;
     position: relative;
     background: white;
+    transition: margin-right 0.3s ease-out;
+}
+
+.map-container.shifted {
+    margin-right: 400px;
 }
 
 /* SVG Map */
@@ -96,16 +101,18 @@ html, body {
     z-index: 1000;
 }
 
-/* Zoom controls et bouton raccourcis - en haut à droite */
+/* Zoom controls et bouton raccourcis - vertical contre la liste */
 .zoom-controls {
-    position: fixed;
-    right: 20px;
-    top: 20px;
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    transform: none;
     background: rgba(255, 255, 255, 0.95);
     padding: 8px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex;
+    flex-direction: column;
     gap: 8px;
     pointer-events: auto;
     backdrop-filter: blur(5px);
@@ -203,12 +210,18 @@ html, body {
         width: 420px;
         min-width: 420px;
     }
+    .zoom-controls, .shortcuts-tooltip {
+        left: 440px; /* Ajustement pour écrans plus petits */
+    }
 }
 
 @media screen and (max-width: 992px) {
     .franchise-panel {
         width: 400px;
         min-width: 400px;
+    }
+    .zoom-controls, .shortcuts-tooltip {
+        left: 420px;
     }
 }
 
@@ -231,10 +244,13 @@ html, body {
     }
 
     .zoom-controls {
-        position: absolute;
-        right: 10px;
-        bottom: 20px;
+        position: fixed;
+        left: auto;
+        right: 20px;
         top: auto;
+        bottom: 20px;
+        transform: none;
+        flex-direction: row;
     }
     
     .zoom-controls button {
@@ -274,6 +290,16 @@ html, body {
     .location-btn {
         padding: 6px 12px;
         font-size: 0.75em;
+    }
+
+    .shortcuts-tooltip {
+        left: auto;
+        right: 20px;
+        top: auto;
+        bottom: 80px;
+        transform: none;
+        font-size: 0.85em;
+        padding: 12px 15px;
     }
 }
 
@@ -554,15 +580,15 @@ html, body {
 .modal-content {
     display: flex;
     padding: 0;
+    border: none;
 }
 
 .franchise-tabs {
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding: 30px;
-    width: 280px;
-    border-right: 1px solid rgba(0,0,0,0.1);
+    border: none;
 }
 
 .franchise-tab {
@@ -570,69 +596,38 @@ html, body {
     align-items: center;
     gap: 15px;
     padding: 15px;
-    cursor: pointer;
-    font-size: 0.9em;
-    color: #666;
-    background: #f8f8f8;
+    background: none;
     border: none;
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
     width: 100%;
     text-align: left;
 }
 
-.franchise-tab .tab-photo {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.franchise-tab .tab-photo img {
-    width: 35px;
-    height: 35px;
-    object-fit: contain;
-}
-
-.franchise-tab .tab-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.franchise-tab .tab-name {
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 4px;
-    white-space: normal;
-    word-wrap: break-word;
-    line-height: 1.2;
-}
-
 .franchise-tab:hover {
-    background: #f0f0f0;
-    transform: translateX(5px);
+    background: #f8f8f8;
 }
 
 .franchise-tab.active {
-    background: #e31e26;
+    background: #f8f8f8;
 }
 
-.franchise-tab.active .tab-photo {
-    background: #fff;
+.franchise-tab .tab-name {
+    font-size: 0.95em;
+    color: #333;
+    font-weight: 500;
 }
 
 .franchise-tab.active .tab-name {
-    color: white;
+    color: #333;
+    font-weight: 600;
 }
 
 .franchise-details-container {
     flex: 1;
     padding: 30px;
+    border: none;
 }
 
 .franchise-details {
@@ -700,5 +695,279 @@ html, body {
     font-size: 0.9em;
     color: #666;
     border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Tooltip des raccourcis - aligné avec les contrôles */
+.shortcuts-tooltip {
+    position: absolute;
+    left: 80px;
+    bottom: 20px;
+    transform: none;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    width: max-content;
+    max-width: 300px;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    backdrop-filter: blur(5px);
+    z-index: 1001;
+}
+
+.shortcuts-tooltip.active {
+    display: block;
+}
+
+.shortcuts-tooltip ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.shortcuts-tooltip li {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9em;
+}
+
+.shortcuts-tooltip .shortcut-key {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: monospace;
+    color: #333;
+}
+
+@media screen and (max-width: 768px) {
+    .shortcuts-tooltip {
+        left: auto;
+        right: 20px;
+        top: auto;
+        bottom: 80px;
+        transform: none;
+        font-size: 0.75em;
+        padding: 10px;
+        max-width: 200px;
+    }
+
+    .shortcuts-tooltip li {
+        margin: 5px 0;
+        gap: 8px;
+        font-size: 0.85em;
+    }
+
+    .shortcuts-tooltip .shortcut-key {
+        padding: 1px 4px;
+        font-size: 0.85em;
+    }
+}
+
+/* Panneau de droite - Détails de franchise */
+.franchise-details-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: #fff;
+    display: none;
+    box-shadow: none;
+}
+
+.franchise-details-panel.active {
+    display: block;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.franchise-details-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    padding: 30px;
+    background: #fff;
+    border-bottom: none;
+}
+
+.card-title {
+    color: #333;
+    font-size: 1.2em;
+    margin: 0;
+    font-weight: 500;
+}
+
+.card-title .city-name {
+    color: #e31e26;
+    font-weight: 600;
+}
+
+.card-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Onglets de franchise */
+.franchise-tabs {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.franchise-tab {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.franchise-tab:hover {
+    background: #f8f8f8;
+}
+
+.franchise-tab.active {
+    background: #f8f8f8;
+}
+
+.franchise-tab .tab-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.franchise-tab .tab-photo img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.franchise-tab .tab-name {
+    font-size: 0.95em;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Détails de franchise */
+.franchise-details {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.franchise-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.franchise-info-item label {
+    font-size: 0.75em;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.franchise-info-item p {
+    font-size: 0.95em;
+    color: #333;
+    margin: 0;
+}
+
+.franchise-departments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.franchise-departments span {
+    font-size: 0.85em;
+    color: #666;
+    background: #f8f8f8;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+    .franchise-details-panel {
+        width: 100%;
+        height: 90vh;
+        bottom: 0;
+        top: auto;
+    }
+
+    .card-header {
+        padding: 20px;
+    }
+
+    .franchise-tabs {
+        padding: 15px;
+    }
+
+    .franchise-details {
+        padding: 15px;
+    }
+}
+
+.card-close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.card-close:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.card-close::before,
+.card-close::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 2px;
+    background: #333;
+    transform-origin: center;
+}
+
+.card-close::before {
+    transform: rotate(45deg);
+}
+
+.card-close::after {
+    transform: rotate(-45deg);
 }
 
