@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte de France - Territoires</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="franchise-panel">
+            <div class="franchise-list">
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR RENNES</h3>
+                        <p>Lucie GICQUEL</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR NANTES</h3>
+                        <p>Jean CHARBONNIER</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR TOURS</h3>
+                        <p>Eric DENEL</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR LE MANS</h3>
+                        <p>Cyrielle DENIAU</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR NIMES</h3>
+                        <p>Marjorie COULAS</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR LA ROCHELLE</h3>
+                        <p>Emilie SULIMA NEMBRINI</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR PAU</h3>
+                        <p>Délia ANDRE-FEYTE</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR BORDEAUX</h3>
+                        <p>Alexandre FRAMBERY IACOBONE</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR MARSEILLE</h3>
+                        <p>Aude BOUQUET</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR BESANÇON</h3>
+                        <p>Bénédicte BERT</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR ROUEN</h3>
+                        <p>Eléonore DUTHEIL</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR MONTPELLIER</h3>
+                        <p>Anthony MANSUY</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR CLERMONT-FERRAND</h3>
+                        <p>Evelyne CHAUMAT</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+                <div class="franchise-item">
+                    <div class="franchise-info">
+                        <h3>SEGUR POITIERS</h3>
+                        <p>Sandra BRETHES</p>
+                    </div>
+                    <button class="location-btn">AFFICHER</button>
+                </div>
+            </div>
+        </div>
+        <div class="map-container">
+            <svg id="map" preserveAspectRatio="xMidYMid meet">
+                <g id="viewport"></g>
+            </svg>
+            <div class="controls">
+                <div class="zoom-controls">
+                    <button id="zoom-in">+</button>
+                    <button id="zoom-out">-</button>
+                    <button id="reset">⌂</button>
+                    <button id="shortcuts-toggle">Raccourcis</button>
+                </div>
+                <div class="shortcuts">
+                    <h3>Raccourcis</h3>
+                    <ul>
+                        <li>Molette : Zoom avant/arrière</li>
+                        <li>Double-clic : Zoom avant</li>
+                        <li>Shift + Double-clic : Zoom arrière</li>
+                        <li>Clic gauche maintenu : Déplacer</li>
+                        <li>Flèches : Déplacer</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="map.js"></script>
+</body>
+</html>
