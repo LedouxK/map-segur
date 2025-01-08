@@ -170,7 +170,7 @@ const cities = [
     { name: "RENNES", coords: [-1.6833, 48.0833] },
     { name: "NANTES", coords: [-1.5533, 47.2184] },
     { name: "ROUEN", coords: [1.0993, 49.4431] },
-    { name: "BESANCON", coords: [6.0333, 47.2500] },
+    { name: "BESANÇON", coords: [6.0333, 47.2500] },
     { name: "CLERMONT-FERRAND", coords: [3.0819, 45.7772] },
     { name: "MONTPELLIER", coords: [3.8767, 43.6108] },
     { name: "MARSEILLE", coords: [5.3698, 43.2965] },
@@ -178,18 +178,6 @@ const cities = [
     { name: "NIMES", coords: [4.3600, 43.8367] },
     { name: "BORDEAUX", coords: [-0.5800, 44.8378] },
     { name: "POITIERS", coords: [0.3333, 46.5833] },
-    { name: "PARIS", coords: [2.3522, 48.8566] },
-    { name: "LYON", coords: [4.8357, 45.7640] },
-    { name: "TOULOUSE", coords: [1.4442, 43.6047] },
-    { name: "LIMOGES", coords: [1.2611, 45.8336] },
-    { name: "CANNES", coords: [7.0170, 43.5513] },
-    { name: "VALENCE", coords: [4.8900, 44.9333] },
-    { name: "STRASBOURG", coords: [7.7521, 48.5734] },
-    { name: "REIMS", coords: [4.0347, 49.2583] },
-    { name: "AMIENS", coords: [2.2950, 49.8941] },
-    { name: "CAEN", coords: [-0.3590, 49.1826] },
-    { name: "LILLE", coords: [3.0573, 50.6292] },
-    { name: "BREST", coords: [-4.4833, 48.3900] },
     { name: "LA ROCHELLE", coords: [-1.1508, 46.1591] }
 ];
 
@@ -215,7 +203,11 @@ d3.json("https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/r
             .enter()
             .append("g")
             .attr("class", "city")
-            .attr("transform", d => `translate(${projection(d.coords)})`);
+            .attr("transform", d => `translate(${projection(d.coords)})`)
+            .on("click", function(event, d) {
+                event.stopPropagation();
+                centerOnCity(d.name);
+            });
 
         // Ajouter les marqueurs
         cityGroups.append("circle")
@@ -261,20 +253,28 @@ document.addEventListener('click', (event) => {
     }
 }); 
 
+// Fonction pour normaliser les caractères spéciaux
+function normalizeString(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+}
+
 // Fonction pour afficher la modale avec les informations du franchisé
 function showFranchiseInfo(cityName) {
     const cleanCityName = cityName.replace('SEGUR', '').trim();
-    const franchise = franchises.find(f => f.ville.toUpperCase() === cleanCityName);
+    const franchise = franchises.find(f => normalizeString(f.ville) === normalizeString(cleanCityName));
     
     if (franchise) {
+        console.log("Franchise trouvée:", franchise);
+        
         // Mettre à jour le titre de la modale
-        document.querySelector('.city-name').textContent = franchise.ville;
+        document.querySelector('.modal-title').innerHTML = `SEGUR <span class="city-name">${franchise.ville}</span>`;
         
         // Créer les onglets
         const tabsContainer = document.querySelector('.franchise-tabs');
         tabsContainer.innerHTML = '';
         
-        if (Array.isArray(franchise.equipe)) {
+        if (Array.isArray(franchise.equipe) && franchise.equipe.length > 0) {
+            // Cas avec plusieurs membres d'équipe
             franchise.equipe.forEach((membre, index) => {
                 const tab = document.createElement('button');
                 tab.className = `franchise-tab ${index === 0 ? 'active' : ''}`;
@@ -294,14 +294,17 @@ function showFranchiseInfo(cityName) {
                 
                 tab.appendChild(photoDiv);
                 tab.appendChild(infoDiv);
-                tab.onclick = () => updateFranchiseDetails(franchise, index);
+                tab.onclick = (event) => {
+                    event.stopPropagation();
+                    updateFranchiseDetails(franchise, index);
+                };
                 tabsContainer.appendChild(tab);
             });
             
             // Afficher les détails du premier membre
             updateFranchiseDetails(franchise, 0);
         } else {
-            // Pour les franchises avec un seul membre
+            // Cas avec un seul membre
             const tab = document.createElement('button');
             tab.className = 'franchise-tab active';
             
@@ -323,21 +326,8 @@ function showFranchiseInfo(cityName) {
             tabsContainer.appendChild(tab);
             
             // Mettre à jour les informations directement
-            document.querySelector('.franchise-name').textContent = franchise.nom;
-            document.querySelector('.franchise-firstname').textContent = franchise.prenom;
-            document.querySelector('.franchise-email').textContent = franchise.email;
-            document.querySelector('.franchise-phone').textContent = franchise.telephone;
-            
-            const photoElement = document.querySelector('.franchise-image');
-            photoElement.src = franchise.photo ? `images/franchises/${franchise.photo}` : 'images/logo_sans_texte.png';
-            photoElement.onerror = () => { photoElement.src = 'images/logo_sans_texte.png'; };
+            updateFranchiseDetails(franchise, null);
         }
-        
-        // Formater les départements
-        const depsHtml = franchise.departements
-            .map(dep => `<span>${dep}</span>`)
-            .join('');
-        document.querySelector('.franchise-departments').innerHTML = depsHtml;
         
         // Afficher la modale
         document.querySelector('.modal-overlay').classList.add('active');
@@ -347,7 +337,7 @@ function showFranchiseInfo(cityName) {
 
 // Fonction pour mettre à jour les détails d'un membre
 function updateFranchiseDetails(franchise, memberIndex) {
-    const membre = franchise.equipe[memberIndex];
+    const membre = memberIndex !== null ? franchise.equipe[memberIndex] : franchise;
     
     // Mettre à jour les onglets actifs
     document.querySelectorAll('.franchise-tab').forEach((tab, index) => {
@@ -355,16 +345,26 @@ function updateFranchiseDetails(franchise, memberIndex) {
     });
     
     // Mettre à jour les informations
-    document.querySelector('.franchise-name').textContent = membre.nom;
-    document.querySelector('.franchise-firstname').textContent = membre.prenom;
-    document.querySelector('.franchise-email').textContent = membre.email;
-    document.querySelector('.franchise-phone').textContent = membre.telephone;
+    const elements = {
+        name: document.querySelector('.franchise-name'),
+        firstname: document.querySelector('.franchise-firstname'),
+        email: document.querySelector('.franchise-email'),
+        phone: document.querySelector('.franchise-phone'),
+        departments: document.querySelector('.franchise-departments')
+    };
     
-    // Formater les départements avec des spans
-    const depsHtml = franchise.departements
-        .map(dep => `<span>${dep}</span>`)
-        .join('');
-    document.querySelector('.franchise-departments').innerHTML = depsHtml;
+    if (elements.name) elements.name.textContent = membre.nom;
+    if (elements.firstname) elements.firstname.textContent = membre.prenom;
+    if (elements.email) elements.email.textContent = membre.email;
+    if (elements.phone) elements.phone.textContent = membre.telephone;
+    
+    // Formater les départements
+    if (elements.departments) {
+        const depsHtml = franchise.departements
+            .map(dep => `<span>${dep}</span>`)
+            .join('');
+        elements.departments.innerHTML = depsHtml;
+    }
 }
 
 // Fonction pour fermer la modale
@@ -376,16 +376,33 @@ function closeModal() {
 // Ajouter les écouteurs d'événements pour la modale
 document.addEventListener('DOMContentLoaded', () => {
     // Fermer la modale en cliquant sur le bouton de fermeture
-    document.querySelector('.modal-close').addEventListener('click', closeModal);
+    document.querySelector('.modal-close').addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeModal();
+    });
     
     // Fermer la modale en cliquant sur l'overlay
-    document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+    document.querySelector('.modal-overlay').addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal-overlay')) {
+            closeModal();
+        }
+    });
+
+    // Empêcher la propagation des clics depuis la modale
+    document.querySelector('.franchise-modal').addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
 });
 
 // Modifier la fonction centerOnCity pour afficher la modale
 function centerOnCity(cityName) {
     const cleanCityName = cityName.replace('SEGUR', '').trim();
-    const city = cities.find(c => c.name === cleanCityName.toUpperCase());
+    // Utiliser une comparaison plus souple pour trouver la ville
+    const city = cities.find(c => {
+        const normalizedCityName = c.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        const normalizedCleanName = cleanCityName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        return normalizedCityName === normalizedCleanName;
+    });
     
     if (city) {
         // Réinitialiser tous les marqueurs
@@ -395,12 +412,16 @@ function centerOnCity(cityName) {
         
         // Sélectionner le marqueur de la ville
         const cityMarker = cityGroups
-            .filter(d => d.name === cleanCityName.toUpperCase())
+            .filter(d => {
+                const normalizedName = d.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+                const normalizedCleanName = cleanCityName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+                return normalizedName === normalizedCleanName;
+            })
             .select(".city-marker");
             
         // Mettre en évidence le marqueur
         cityMarker.classed("selected", true)
-                 .attr("r", 20);
+                 .attr("r", 8);
             
         // Afficher les informations du franchisé
         showFranchiseInfo(cityName);

@@ -25,7 +25,7 @@ const franchises = [
         "prenom": "Jean",
         "email": "nantes@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["44", "49", "85"]
+        "departements": ["44"]
     },
     {
         "ville": "TOURS",
@@ -33,15 +33,15 @@ const franchises = [
         "prenom": "Eric",
         "email": "tours@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["37", "41"]
+        "departements": ["37", "41","45"]
     },
     {
         "ville": "LE MANS",
         "nom": "DENIAU",
         "prenom": "Cyrielle",
-        "email": "lemans@segur.eu",
+        "email": "anjoumaine@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["53", "72"]
+        "departements": ["53", "72","61","49"]
     },
     {
         "ville": "NIMES",
@@ -49,15 +49,15 @@ const franchises = [
         "prenom": "Marjorie",
         "email": "nimes@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["30", "48"]
+        "departements": ["30", "48","84","07"]
     },
     {
         "ville": "LA ROCHELLE",
         "nom": "SULIMA NEMBRINI",
         "prenom": "Emilie",
-        "email": "larochelle@segur.eu",
+        "email": "vendee@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["16", "17", "79"]
+        "departements": ["85", "17", "79","86"]
     },
     {
         "ville": "PAU",
@@ -73,7 +73,7 @@ const franchises = [
         "prenom": "Alexandre",
         "email": "bordeaux@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["24", "33", "47"]
+        "departements": ["24", "33", "16"]
     },
     {
         "ville": "MARSEILLE",
@@ -81,13 +81,13 @@ const franchises = [
         "prenom": "Aude",
         "email": "marseille@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["13", "83", "84"]
+        "departements": ["13", "83", "04","06"]
     },
     {
-        "ville": "BESANCON",
+        "ville": "BESANÇON",
         "nom": "BERT",
         "prenom": "Bénédicte",
-        "email": "besancon@segur.eu",
+        "email": "franche-comte@segur.eu",
         "telephone": "06.56.67.32.23",
         "departements": ["25", "39", "70", "90"]
     },
@@ -105,13 +105,13 @@ const franchises = [
         "prenom": "Anthony",
         "email": "montpellier@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["11", "34", "66"]
+        "departements": ["11", "12", "34", "66"]
     },
     {
         "ville": "CLERMONT-FERRAND",
         "nom": "CHAUMAT",
         "prenom": "Evelyne",
-        "email": "clermont@segur.eu",
+        "email": "auvergne@segur.eu",
         "telephone": "06.56.67.32.23",
         "departements": ["03", "15", "43", "63"]
     },
@@ -121,6 +121,6 @@ const franchises = [
         "prenom": "Sandra",
         "email": "poitiers@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["86", "87"]
+        "departements": ["86", "79","16"]
     }
 ]; 
