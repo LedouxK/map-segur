@@ -129,6 +129,19 @@ const svg = d3.select("#map")
     .attr("preserveAspectRatio", "xMidYMid meet")
     .call(zoomBehavior);
 
+// Ajout du pattern pour le logo
+const defs = svg.append("defs");
+const pattern = defs.append("pattern")
+    .attr("id", "logo-pattern")
+    .attr("width", 24)
+    .attr("height", 24)
+    .attr("patternUnits", "userSpaceOnUse");
+
+pattern.append("image")
+    .attr("href", "images/logo_sans_texte.png")
+    .attr("width", 24)
+    .attr("height", 24);
+
 // Couleurs des régions
 const regionColors = {
     "Auvergne-Rhône-Alpes": "#8B4C9C",
@@ -244,32 +257,169 @@ document.addEventListener('click', (event) => {
     }
 }); 
 
-// Fonction pour centrer la carte sur une ville
-function centerOnCity(cityName) {
-    const city = cities.find(c => c.name === cityName.toUpperCase());
-    if (city) {
-        const coords = projection(city.coords);
-        const k = 4;
-        const centerX = width / 2;
-        const centerY = height / 2;
+// Fonction pour afficher la modale avec les informations du franchisé
+function showFranchiseInfo(cityName) {
+    const cleanCityName = cityName.replace('SEGUR', '').trim();
+    const franchise = franchises.find(f => f.ville.toUpperCase() === cleanCityName);
+    
+    if (franchise) {
+        // Mettre à jour le titre de la modale
+        document.querySelector('.city-name').textContent = franchise.ville;
         
-        svg.transition()
-            .duration(750)
-            .call(
-                zoomBehavior.transform,
-                d3.zoomIdentity
-                    .translate(centerX, centerY)
-                    .scale(k)
-                    .translate(-coords[0], -coords[1])
-            );
+        // Créer les onglets
+        const tabsContainer = document.querySelector('.franchise-tabs');
+        tabsContainer.innerHTML = '';
+        
+        if (Array.isArray(franchise.equipe)) {
+            franchise.equipe.forEach((membre, index) => {
+                const tab = document.createElement('button');
+                tab.className = `franchise-tab ${index === 0 ? 'active' : ''}`;
+                
+                const photoDiv = document.createElement('div');
+                photoDiv.className = 'tab-photo';
+                const img = document.createElement('img');
+                img.src = membre.photo ? `images/franchises/${membre.photo}` : 'images/logo_sans_texte.png';
+                img.onerror = () => { img.src = 'images/logo_sans_texte.png'; };
+                photoDiv.appendChild(img);
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'tab-info';
+                infoDiv.innerHTML = `
+                    <div class="tab-name">${membre.prenom} ${membre.nom}</div>
+                `;
+                
+                tab.appendChild(photoDiv);
+                tab.appendChild(infoDiv);
+                tab.onclick = () => updateFranchiseDetails(franchise, index);
+                tabsContainer.appendChild(tab);
+            });
+            
+            // Afficher les détails du premier membre
+            updateFranchiseDetails(franchise, 0);
+        } else {
+            // Pour les franchises avec un seul membre
+            const tab = document.createElement('button');
+            tab.className = 'franchise-tab active';
+            
+            const photoDiv = document.createElement('div');
+            photoDiv.className = 'tab-photo';
+            const img = document.createElement('img');
+            img.src = franchise.photo ? `images/franchises/${franchise.photo}` : 'images/logo_sans_texte.png';
+            img.onerror = () => { img.src = 'images/logo_sans_texte.png'; };
+            photoDiv.appendChild(img);
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'tab-info';
+            infoDiv.innerHTML = `
+                <div class="tab-name">${franchise.prenom} ${franchise.nom}</div>
+            `;
+            
+            tab.appendChild(photoDiv);
+            tab.appendChild(infoDiv);
+            tabsContainer.appendChild(tab);
+            
+            // Mettre à jour les informations directement
+            document.querySelector('.franchise-name').textContent = franchise.nom;
+            document.querySelector('.franchise-firstname').textContent = franchise.prenom;
+            document.querySelector('.franchise-email').textContent = franchise.email;
+            document.querySelector('.franchise-phone').textContent = franchise.telephone;
+            
+            const photoElement = document.querySelector('.franchise-image');
+            photoElement.src = franchise.photo ? `images/franchises/${franchise.photo}` : 'images/logo_sans_texte.png';
+            photoElement.onerror = () => { photoElement.src = 'images/logo_sans_texte.png'; };
+        }
+        
+        // Formater les départements
+        const depsHtml = franchise.departements
+            .map(dep => `<span>${dep}</span>`)
+            .join('');
+        document.querySelector('.franchise-departments').innerHTML = depsHtml;
+        
+        // Afficher la modale
+        document.querySelector('.modal-overlay').classList.add('active');
+        document.querySelector('.franchise-modal').classList.add('active');
+    }
+}
+
+// Fonction pour mettre à jour les détails d'un membre
+function updateFranchiseDetails(franchise, memberIndex) {
+    const membre = franchise.equipe[memberIndex];
+    
+    // Mettre à jour les onglets actifs
+    document.querySelectorAll('.franchise-tab').forEach((tab, index) => {
+        tab.classList.toggle('active', index === memberIndex);
+    });
+    
+    // Mettre à jour les informations
+    document.querySelector('.franchise-name').textContent = membre.nom;
+    document.querySelector('.franchise-firstname').textContent = membre.prenom;
+    document.querySelector('.franchise-email').textContent = membre.email;
+    document.querySelector('.franchise-phone').textContent = membre.telephone;
+    
+    // Formater les départements avec des spans
+    const depsHtml = franchise.departements
+        .map(dep => `<span>${dep}</span>`)
+        .join('');
+    document.querySelector('.franchise-departments').innerHTML = depsHtml;
+}
+
+// Fonction pour fermer la modale
+function closeModal() {
+    document.querySelector('.modal-overlay').classList.remove('active');
+    document.querySelector('.franchise-modal').classList.remove('active');
+}
+
+// Ajouter les écouteurs d'événements pour la modale
+document.addEventListener('DOMContentLoaded', () => {
+    // Fermer la modale en cliquant sur le bouton de fermeture
+    document.querySelector('.modal-close').addEventListener('click', closeModal);
+    
+    // Fermer la modale en cliquant sur l'overlay
+    document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+});
+
+// Modifier la fonction centerOnCity pour afficher la modale
+function centerOnCity(cityName) {
+    // Extraire le nom de la ville en enlevant "SEGUR "
+    const cleanCityName = cityName.replace('SEGUR', '').trim();
+    const city = cities.find(c => c.name === cleanCityName.toUpperCase());
+    
+    if (city) {
+        // Réinitialiser tous les marqueurs
+        d3.selectAll(".city-marker")
+            .classed("selected", false)
+            .attr("r", 4);
+        
+        // Sélectionner le marqueur de la ville
+        const cityMarker = cityGroups
+            .filter(d => d.name === cleanCityName.toUpperCase())
+            .select(".city-marker");
+            
+        // Mettre en évidence le marqueur
+        cityMarker.classed("selected", true)
+                 .attr("r", 15);
+            
+        // Afficher les informations du franchisé
+        showFranchiseInfo(cityName);
+            
+        // Réinitialiser le marqueur après 3 secondes
+        setTimeout(() => {
+            cityMarker.classed("selected", false)
+                     .attr("r", 4);
+        }, 3000);
     }
 }
 
 // Ajouter les écouteurs d'événements aux boutons "AFFICHER"
-document.querySelectorAll('.location-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        const cityName = e.target.closest('.franchise-item').querySelector('h3').textContent;
-        centerOnCity(cityName);
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.location-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const franchiseItem = e.target.closest('.franchise-item');
+            const segurText = franchiseItem.querySelector('.segur').textContent;
+            const villeText = franchiseItem.querySelector('.ville').textContent;
+            const cityName = segurText + ' ' + villeText;
+            centerOnCity(cityName);
+        });
     });
 }); 
 
