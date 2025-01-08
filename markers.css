@@ -1,18 +1,29 @@
 /* Styles pour les marqueurs de villes */
 .city {
     cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center;
 }
 
 /* Style des marqueurs (points rouges) */
 .city-marker {
     width: 10px;
     height: 10px;
+    background-color: #ff0000;
+    border-radius: 50%;
+    fill: #ff0000;
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
     transition: all 0.2s ease;
 }
 
 .city:hover .city-marker {
     width: 16px;
     height: 16px;
+    background-color: #cc0000;
+    fill: #cc0000;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
 /* Style des noms de villes */

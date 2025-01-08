@@ -133,14 +133,18 @@ const svg = d3.select("#map")
 const defs = svg.append("defs");
 const pattern = defs.append("pattern")
     .attr("id", "logo-pattern")
-    .attr("width", 24)
-    .attr("height", 24)
-    .attr("patternUnits", "userSpaceOnUse");
+    .attr("width", 30)
+    .attr("height", 30)
+    .attr("patternUnits", "userSpaceOnUse")
+    .attr("x", -15)
+    .attr("y", -15);
 
 pattern.append("image")
     .attr("href", "images/logo_sans_texte.png")
-    .attr("width", 24)
-    .attr("height", 24);
+    .attr("width", 30)
+    .attr("height", 30)
+    .attr("x", 0)
+    .attr("y", 0);
 
 // Couleurs des régions
 const regionColors = {
@@ -380,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Modifier la fonction centerOnCity pour afficher la modale
 function centerOnCity(cityName) {
-    // Extraire le nom de la ville en enlevant "SEGUR "
     const cleanCityName = cityName.replace('SEGUR', '').trim();
     const city = cities.find(c => c.name === cleanCityName.toUpperCase());
     
@@ -397,7 +400,7 @@ function centerOnCity(cityName) {
             
         // Mettre en évidence le marqueur
         cityMarker.classed("selected", true)
-                 .attr("r", 15);
+                 .attr("r", 20);
             
         // Afficher les informations du franchisé
         showFranchiseInfo(cityName);

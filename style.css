@@ -79,7 +79,7 @@ html, body {
     fill: url(#logo-pattern);
     stroke: #e31e26;
     stroke-width: 2;
-    filter: drop-shadow(0 0 4px rgba(227, 30, 38, 0.5));
+    filter: drop-shadow(0 0 6px rgba(227, 30, 38, 0.6));
 }
 
 .city text {
