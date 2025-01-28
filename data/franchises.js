@@ -17,7 +17,7 @@ const franchises = [
                 "photo": null
             }
         ],
-        "departements": ["22", "35", "50", "29"]
+        "departements": ["22", "35", "50", "29","56"]
     },
     {
         "ville": "NANTES",
@@ -57,7 +57,7 @@ const franchises = [
         "prenom": "Emilie",
         "email": "vendee@segur.eu",
         "telephone": "06.56.67.32.23",
-        "departements": ["85", "17", "79","86"]
+        "departements": ["85", "17", "79"]
     },
     {
         "ville": "PAU",

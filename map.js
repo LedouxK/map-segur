@@ -3,6 +3,56 @@ let zoom;
 let cityGroups;
 let width;
 let height;
+let departements;
+let projection;
+let path;
+let viewport;
+let isDragging = false;
+let startX, startY, startTranslateX, startTranslateY;
+let selectedCity = null; // Variable pour stocker la ville sélectionnée
+let svg = null;
+
+// Test simple au début du fichier, après les variables globales
+console.log("=== TEST CHARGEMENT DEPARTEMENTS ===");
+
+fetch('data/departements.json')
+    .then(response => {
+        console.log("Status de la réponse:", response.status);
+        console.log("OK?", response.ok);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Données chargées:", data);
+        console.log("Type:", typeof data);
+        if (data.features) {
+            console.log("Nombre de départements:", data.features.length);
+            console.log("Premier département:", data.features[0]);
+        }
+    })
+    .catch(error => {
+        console.error("Erreur lors du chargement:", error);
+    });
+
+// Fonction pour obtenir les coordonnées d'une ville
+function getCityCoordinates(cityName) {
+    const cityCoords = {
+        "TOURS": [0.6833, 47.3833],
+        "LE MANS": [0.2000, 48.0000],
+        "RENNES": [-1.6833, 48.0833],
+        "NANTES": [-1.5533, 47.2184],
+        "ROUEN": [1.0993, 49.4431],
+        "BESANÇON": [6.0333, 47.2500],
+        "CLERMONT-FERRAND": [3.0819, 45.7772],
+        "MONTPELLIER": [3.8767, 43.6108],
+        "MARSEILLE": [5.3698, 43.2965],
+        "PAU": [-0.3667, 43.3000],
+        "NIMES": [4.3600, 43.8367],
+        "BORDEAUX": [-0.5800, 44.8378],
+        "POITIERS": [0.3333, 46.5833],
+        "LA ROCHELLE": [-1.1508, 46.1591]
+    };
+    return cityCoords[cityName] || [0, 0];
+}
 
 // Point d'intérêt central de la France
 const FRANCE_CENTER = {
@@ -12,21 +62,13 @@ const FRANCE_CENTER = {
 
 // Configuration de la carte
 function updateDimensions() {
-    const franchisePanel = document.querySelector('.franchise-panel');
-    const panelWidth = franchisePanel ? franchisePanel.offsetWidth : 350;
+    const container = document.querySelector('.map-container');
+    if (!container) return { width: 800, height: 600 };
     
-    // Dimensions minimales garanties
-    const minWidth = 300;  // Largeur minimale de la carte
-    const minHeight = 400; // Hauteur minimale de la carte
+    const width = container.clientWidth;
+    const height = container.clientHeight;
     
-    // Calcul des dimensions en tenant compte des minimums
-    const calculatedWidth = Math.max(window.innerWidth - panelWidth, minWidth);
-    const calculatedHeight = Math.max(window.innerHeight, minHeight);
-    
-    return {
-        width: calculatedWidth,
-        height: calculatedHeight
-    };
+    return { width, height };
 }
 
 // Initialisation des dimensions
@@ -34,99 +76,27 @@ const dimensions = updateDimensions();
 width = dimensions.width;
 height = dimensions.height;
 
-// Taille minimale de la carte
-const MIN_SCALE = 2500;
-
-// État initial de la carte
-let initialState = {
-    scale: MIN_SCALE,
-    center: FRANCE_CENTER,
-    translate: null
-};
-
 // Fonction pour calculer l'échelle optimale
 function calculateOptimalScale(width, height) {
-    // Dimensions minimales pour le calcul de l'échelle
-    const minDimension = Math.min(width, height);
-    
-    // Réduction de l'échelle pour mobile (ratio hauteur/largeur > 1.5)
-    if (height / width > 1.5) {
-        const baseScale = Math.min(width * 2.0, height) * 3.2;
-        return Math.max(MIN_SCALE, baseScale);
-    }
-    
-    // Ajustement pour les différentes tailles d'écran
-    let multiplier;
-    if (width < 480) {
-        multiplier = 4.0; // Très petits écrans
-    } else if (width < 768) {
-        multiplier = 3.7; // Petits écrans
-    } else if (width < 992) {
-        multiplier = 3.6; // Écrans moyens
-    } else if (width < 1200) {
-        multiplier = 3.6; // Grands écrans
-    } else {
-        multiplier = 3.7; // Très grands écrans
-    }
-    
-    const baseScale = minDimension * multiplier;
-    return Math.max(MIN_SCALE, baseScale);
+    return Math.min(width, height) * 2.5;
 }
 
-// Fonction pour créer la projection avec état sauvegardé
-function createProjection(width, height, preserveState = false) {
-    const scale = preserveState && initialState.scale ? initialState.scale : calculateOptimalScale(width, height);
-    
-    const projection = d3.geoMercator()
-        .center([FRANCE_CENTER.longitude, FRANCE_CENTER.latitude])
-        .scale(scale)
-        .translate([width / 2, height / 2]);
+// Initialisation du SVG au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialisation du SVG
+    svg = d3.select("#map")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .call(zoomBehavior);
 
-    // Sauvegarder l'état initial si c'est la première création
-    if (!initialState.translate) {
-        initialState.translate = [width / 2, height / 2];
-    }
+    // Désactiver le double-clic par défaut pour le zoom
+    svg.on("dblclick.zoom", null);
 
-    return projection;
-}
-
-// Initialisation de la projection
-let projection = createProjection(width, height);
-let path = d3.geoPath().projection(projection);
-
-// Création du zoom D3
-const zoomBehavior = d3.zoom()
-    .scaleExtent([1, 8])
-    .filter(event => {
-        // Autoriser uniquement la molette et les boutons de zoom, pas le drag
-        return !event.button && event.type !== 'mousedown' && event.type !== 'mousemove';
-    })
-    .on('zoom', (event) => {
-        // Vérifier que l'échelle ne descend pas en dessous du minimum
-        const baseScale = calculateOptimalScale(width, height);
-        const scale = Math.max(baseScale * event.transform.k, MIN_SCALE) / baseScale;
-        
-        const viewport = d3.select('#viewport');
-        const currentTransform = viewport.attr('transform') || '';
-        let translateX = 0;
-        let translateY = 0;
-        
-        if (currentTransform.includes('translate')) {
-            const matches = currentTransform.match(/translate\((.*?),(.*?)\)/);
-            translateX = parseFloat(matches[1]);
-            translateY = parseFloat(matches[2]);
-        }
-        
-        viewport.attr('transform', `translate(${translateX},${translateY}) scale(${scale})`);
-    });
-
-// Création du SVG avec viewBox dynamique
-const svg = d3.select("#map")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", `0 0 ${width} ${height}`)
-    .attr("preserveAspectRatio", "xMidYMid meet")
-    .call(zoomBehavior);
+    // Initialisation de la carte
+    initializeMap();
+});
 
 // Coordonnées des villes
 const cities = [
@@ -146,97 +116,142 @@ const cities = [
     { name: "LA ROCHELLE", coords: [-1.1508, 46.1591] }
 ];
 
-// Chargement de la carte
-fetch('fra2021.json')
-    .then(response => response.json())
-    .then(france => {
-        // Extraire les coordonnées du contour de la France métropolitaine
-        const coordinates = france.features[0].geometry.coordinates[0];
-        
-        // S'assurer que le polygone est fermé
-        if (JSON.stringify(coordinates[0]) !== JSON.stringify(coordinates[coordinates.length - 1])) {
-            coordinates.push(coordinates[0]);
-        }
+// Fonction pour obtenir la transformation actuelle
+function getCurrentTransform() {
+    const viewport = d3.select('#viewport');
+    const currentTransform = viewport.attr('transform') || '';
+    let translateX = 0;
+    let translateY = 0;
+    let scale = 1;
+    
+    if (currentTransform.includes('translate')) {
+        const matches = currentTransform.match(/translate\((.*?),(.*?)\)/);
+        translateX = parseFloat(matches[1]) || 0;
+        translateY = parseFloat(matches[2]) || 0;
+    }
+    
+    if (currentTransform.includes('scale')) {
+        const scaleMatch = currentTransform.match(/scale\((.*?)\)/);
+        scale = parseFloat(scaleMatch[1]) || 1;
+    }
+    
+    return { translateX, translateY, scale };
+}
 
-        // Créer un polygone fermé
-        const francePolygon = {
-            type: "FeatureCollection",
-            features: [{
-                type: "Feature",
-                geometry: {
-                    type: "Polygon",
-                    coordinates: [coordinates]
-                },
-                properties: france.features[0].properties
-            }]
-        };
+// Fonction d'initialisation de la carte
+async function initializeMap() {
+    try {
+        // 1. Charger les données
+        console.log("Chargement des données...");
+        const [franceData, departementsData] = await Promise.all([
+            fetch('data/fra2021.json').then(r => r.json()),
+            fetch('data/departements.json').then(r => r.json())
+        ]);
+        console.log("Données chargées avec succès");
 
-        // Dessiner le contour de la France
-        d3.select("#viewport")
+        // 2. Initialiser la projection
+        projection = d3.geoMercator()
+            .center([FRANCE_CENTER.longitude, FRANCE_CENTER.latitude])
+            .scale(calculateOptimalScale(width, height))
+            .translate([width / 2, height / 2]);
+
+        path = d3.geoPath().projection(projection);
+
+        // 3. Créer le viewport
+        viewport = d3.select("#viewport");
+
+        // 4. Dessiner les départements
+        console.log("Dessin des départements...");
+        const departementsGroup = viewport.append("g")
+            .attr("class", "departements");
+
+        departementsGroup.selectAll("path")
+            .data(departementsData.features)
+            .enter()
             .append("path")
-            .datum(francePolygon)
+            .attr("class", d => `departement dep-${d.properties.code}`)
             .attr("d", path)
             .attr("fill", "white")
             .attr("stroke", "#CCCCCC")
-            .attr("stroke-width", "1");
+            .attr("stroke-width", "0.5")
+            .on("mouseover", function(event, d) {
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise && (!selectedCity || selectedCity === franchise.ville)) {
+                    highlightDepartements(franchise.ville, true);
+                }
+            })
+            .on("mouseout", function(event, d) {
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise && !selectedCity) {
+                    highlightDepartements(franchise.ville, false);
+                }
+            })
+            .on("click", function(event, d) {
+                event.stopPropagation();
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise) {
+                    selectCity(franchise.ville);
+                    showFranchiseInfo(franchise.ville);
+                    centerOnCity(franchise.ville);
+                }
+            });
 
-        // Ajouter les villes
-        cityGroups = d3.select("#viewport")
-            .selectAll("g")
+        // 5. Dessiner la France (contour uniquement pour les départements non-français)
+        console.log("Dessin de la France...");
+        viewport.append("path")
+            .datum(franceData)
+            .attr("d", path)
+            .attr("fill", "none")
+            .attr("stroke", "#CCCCCC")
+            .attr("stroke-width", "0.5")
+            .attr("class", "france-border");
+
+        // 6. Ajouter les villes
+        console.log("Ajout des villes...");
+        cityGroups = viewport.selectAll("g.city")
             .data(cities)
             .enter()
             .append("g")
             .attr("class", "city")
             .attr("transform", d => `translate(${projection(d.coords)})`)
+            .on("mouseover", function(event, d) {
+                if (!selectedCity) {
+                    console.log("Survol de la ville:", d.name);
+                    highlightDepartements(d.name, true);
+                }
+            })
+            .on("mouseout", function(event, d) {
+                if (!selectedCity) {
+                    highlightDepartements(d.name, false);
+                }
+            })
             .on("click", function(event, d) {
                 event.stopPropagation();
+                selectCity(d.name);
+                showFranchiseInfo(d.name);
                 centerOnCity(d.name);
             });
 
-        // Ajouter les marqueurs
+        // Ajouter les cercles pour les villes
         cityGroups.append("circle")
             .attr("class", "city-marker")
             .attr("r", 4);
 
         // Ajouter les noms des villes
         cityGroups.append("text")
+            .attr("x", 8)
+            .attr("y", 4)
             .text(d => d.name);
 
-        // Gestionnaires d'événements pour les boutons
-        document.getElementById('zoom-in').onclick = () => {
-            svg.transition()
-                .duration(300)
-                .call(zoomBehavior.scaleBy, 1.5);
-        };
+        // Ajouter l'écouteur d'événement pour le clic sur la carte
+        d3.select("#map").on("click", handleMapClick);
 
-        document.getElementById('zoom-out').onclick = () => {
-            svg.transition()
-                .duration(300)
-                .call(zoomBehavior.scaleBy, 0.75);
-        };
+        console.log("Initialisation terminée");
 
-        document.getElementById('reset').onclick = () => {
-            svg.transition()
-                .duration(300)
-                .call(zoomBehavior.transform, d3.zoomIdentity);
-        };
-    });
-
-// Gestion des raccourcis
-const shortcutsToggle = document.getElementById('shortcuts-toggle');
-const shortcutsTooltip = document.querySelector('.shortcuts-tooltip');
-
-shortcutsToggle.addEventListener('click', (event) => {
-    event.stopPropagation();
-    shortcutsTooltip.classList.toggle('active');
-});
-
-// Fermer les raccourcis en cliquant en dehors
-document.addEventListener('click', (event) => {
-    if (!shortcutsTooltip.contains(event.target) && !shortcutsToggle.contains(event.target)) {
-        shortcutsTooltip.classList.remove('active');
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation:", error);
     }
-}); 
+}
 
 // Fonction pour normaliser les caractères spéciaux
 function normalizeString(str) {
@@ -471,30 +486,179 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
 });
 
-// Ajout du déplacement avec le clic gauche
-let isDragging = false;
-let startX, startY, startTranslateX, startTranslateY;
+// Création du zoom D3
+const zoomBehavior = d3.zoom()
+    .scaleExtent([1, 8])
+    .on('zoom', (event) => {
+        d3.select('#viewport')
+            .attr('transform', event.transform);
+    });
 
-// Fonction pour obtenir la transformation actuelle
-function getCurrentTransform() {
-    const viewport = d3.select('#viewport');
-    const currentTransform = viewport.attr('transform') || '';
-    let translateX = 0;
-    let translateY = 0;
-    let scale = 1;
+// Ajouter les gestionnaires d'événements pour les contrôles de zoom
+document.addEventListener('DOMContentLoaded', () => {
+    const ZOOM_FACTOR = 1.5;
+
+    // Zoom in
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        const currentTransform = d3.zoomTransform(svg.node());
+        svg.transition()
+            .duration(200)
+            .ease(d3.easeLinear)
+            .call(
+                zoomBehavior.transform,
+                d3.zoomIdentity
+                    .translate(currentTransform.x, currentTransform.y)
+                    .scale(currentTransform.k * ZOOM_FACTOR)
+            );
+    });
+
+    // Zoom out
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        const currentTransform = d3.zoomTransform(svg.node());
+        svg.transition()
+            .duration(200)
+            .ease(d3.easeLinear)
+            .call(
+                zoomBehavior.transform,
+                d3.zoomIdentity
+                    .translate(currentTransform.x, currentTransform.y)
+                    .scale(currentTransform.k / ZOOM_FACTOR)
+            );
+    });
+
+    // Reset
+    document.getElementById('reset').addEventListener('click', () => {
+        svg.transition()
+            .duration(300)
+            .ease(d3.easeLinear)
+            .call(zoomBehavior.transform, d3.zoomIdentity);
+    });
+
+    // Toggle shortcuts
+    document.getElementById('shortcuts-toggle').addEventListener('click', () => {
+        const shortcuts = document.querySelector('.shortcuts-tooltip');
+        shortcuts.classList.toggle('active');
+    });
+
+    // Fermer les raccourcis en cliquant ailleurs
+    document.addEventListener('click', (event) => {
+        if (!event.target.matches('#shortcuts-toggle')) {
+            const shortcuts = document.querySelector('.shortcuts-tooltip');
+            if (shortcuts.classList.contains('active')) {
+                shortcuts.classList.remove('active');
+            }
+        }
+    });
+}); 
+
+// Gestion du redimensionnement
+window.addEventListener('resize', () => {
+    const dimensions = updateDimensions();
+    width = dimensions.width;
+    height = dimensions.height;
     
-    if (currentTransform.includes('translate')) {
-        const matches = currentTransform.match(/translate\((.*?),(.*?)\)/);
-        translateX = parseFloat(matches[1]) || 0;
-        translateY = parseFloat(matches[2]) || 0;
+    svg.attr("width", width)
+       .attr("height", height)
+       .attr("viewBox", `0 0 ${width} ${height}`);
+    
+    projection = d3.geoMercator()
+        .center([FRANCE_CENTER.longitude, FRANCE_CENTER.latitude])
+        .scale(calculateOptimalScale(width, height))
+        .translate([width / 2, height / 2]);
+
+    path = d3.geoPath().projection(projection);
+    
+    if (departements && cityGroups) {
+        d3.selectAll(".departement")
+            .attr("d", path);
+            
+        cityGroups.attr("transform", d => `translate(${projection(d.coords)})`);
+        
+        svg.transition()
+           .duration(300)
+           .call(zoomBehavior.transform, d3.zoomIdentity);
     }
+}); 
+
+// Fonction pour fermer le panneau des franchises
+function closeFranchisePanel() {
+    // Remettre la carte à sa position initiale
+    document.querySelector('.map-container').classList.remove('shifted');
     
-    if (currentTransform.includes('scale')) {
-        const scaleMatch = currentTransform.match(/scale\((.*?)\)/);
-        scale = parseFloat(scaleMatch[1]) || 1;
+    // Masquer le panneau
+    document.querySelector('.franchise-details-panel').classList.remove('active');
+    
+    // Réinitialiser le marqueur sélectionné
+    d3.selectAll(".city-marker")
+        .classed("selected", false)
+        .attr("r", 4);
+}
+
+// Ajoutons la fonction de mise en évidence des départements
+function highlightDepartements(cityName, highlight = true, isSelected = false) {
+    const franchise = franchises.find(f => f.ville === cityName);
+    if (!franchise) return;
+
+    // Couleurs et styles
+    const baseColor = "white";
+    const highlightColor = "#e31e26"; // Rouge SEGUR
+    const baseStroke = "#CCCCCC";
+    const highlightStroke = "#cc1a21"; // Version plus foncée du rouge SEGUR pour les bordures
+    
+    // Opacités et épaisseurs
+    const fillOpacity = highlight ? (isSelected ? 0.85 : 0.75) : 1;
+    const strokeWidth = highlight ? (isSelected ? "1.5" : "1") : "0.5";
+
+    franchise.departements.forEach(depCode => {
+        d3.select(`.dep-${depCode}`)
+            .transition()
+            .duration(200)
+            .attr("fill", highlight ? highlightColor : baseColor)
+            .attr("fill-opacity", fillOpacity)
+            .attr("stroke", highlight ? highlightStroke : baseStroke)
+            .attr("stroke-width", strokeWidth)
+            .style("filter", highlight ? "drop-shadow(0 0 2px rgba(227, 30, 38, 0.3))" : "none");
+    });
+}
+
+// Fonction pour gérer la sélection d'une ville
+function selectCity(cityName) {
+    console.log("Sélection de la ville:", cityName, "Ville actuellement sélectionnée:", selectedCity);
+    
+    // Si on clique sur la ville déjà sélectionnée, on la désélectionne
+    if (selectedCity === cityName) {
+        console.log("Désélection de la ville:", cityName);
+        selectedCity = null;
+        highlightDepartements(cityName, false);
+    } else {
+        // Si une autre ville était sélectionnée, on retire sa mise en évidence
+        if (selectedCity) {
+            console.log("Désélection de l'ancienne ville:", selectedCity);
+            highlightDepartements(selectedCity, false);
+        }
+        // On sélectionne la nouvelle ville
+        console.log("Nouvelle sélection:", cityName);
+        selectedCity = cityName;
+        highlightDepartements(cityName, true, true);
     }
+}
+
+// Fonction pour gérer le clic sur la carte (en dehors des villes)
+function handleMapClick(event) {
+    // Ne rien faire si on est en train de faire glisser la carte
+    if (isDragging) return;
     
-    return { translateX, translateY, scale };
+    // Si le clic n'est pas sur une ville ou un département d'une ville sélectionnée
+    const clickedElement = event.target;
+    const isCity = clickedElement.classList.contains('city-marker') || 
+                  clickedElement.classList.contains('city-label') ||
+                  clickedElement.parentElement.classList.contains('city');
+                  
+    if (!isCity && selectedCity) {
+        console.log("Clic en dehors d'une ville, désélection de:", selectedCity);
+        highlightDepartements(selectedCity, false);
+        selectedCity = null;
+    }
 }
 
 // Gestionnaire de début de drag
@@ -510,7 +674,6 @@ svg.on('mousedown.drag', (event) => {
         startTranslateX = translateX;
         startTranslateY = translateY;
         
-        // Ajouter une classe pendant le drag
         d3.select('#viewport').classed('dragging', true);
     }
 });
@@ -546,51 +709,3 @@ svg.style('user-select', 'none')
    .style('-webkit-user-select', 'none')
    .style('-moz-user-select', 'none')
    .style('-ms-user-select', 'none');
-
-// Ajout des écouteurs d'événements pour le tactile
-const mapContainer = document.querySelector('.map-container');
-mapContainer.addEventListener('touchstart', () => {}, { passive: true });
-mapContainer.addEventListener('touchmove', () => {}, { passive: true });
-mapContainer.addEventListener('wheel', () => {}, { passive: true }); 
-
-// Gestion du redimensionnement
-window.addEventListener('resize', () => {
-    // Mettre à jour les dimensions
-    const dimensions = updateDimensions();
-    width = dimensions.width;
-    height = dimensions.height;
-    
-    // Mettre à jour le SVG
-    svg.attr("width", width)
-       .attr("height", height)
-       .attr("viewBox", `0 0 ${width} ${height}`);
-    
-    // Recréer la projection
-    projection = createProjection(width, height);
-    path = d3.geoPath().projection(projection);
-    
-    // Mettre à jour les éléments de la carte
-    if (regions && cityGroups) {
-        regions.attr("d", path);
-        cityGroups.attr("transform", d => `translate(${projection(d.coords)})`);
-        
-        // Recentrer la vue
-        svg.transition()
-           .duration(300)
-           .call(zoomBehavior.transform, d3.zoomIdentity);
-    }
-}); 
-
-// Fonction pour fermer le panneau des franchises
-function closeFranchisePanel() {
-    // Remettre la carte à sa position initiale
-    document.querySelector('.map-container').classList.remove('shifted');
-    
-    // Masquer le panneau
-    document.querySelector('.franchise-details-panel').classList.remove('active');
-    
-    // Réinitialiser le marqueur sélectionné
-    d3.selectAll(".city-marker")
-        .classed("selected", false)
-        .attr("r", 4);
-} 
