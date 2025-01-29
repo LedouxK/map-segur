@@ -7,39 +7,84 @@
 
 /* Style des marqueurs (points rouges) */
 .city-marker {
-    width: 10px;
-    height: 10px;
-    background-color: #ff0000;
+    width: 12px;
+    height: 12px;
+    background-color: #E31E26;
     border-radius: 50%;
-    fill: #ff0000;
-    stroke: none;
+    fill: #E31E26;
+    stroke: #fff;
+    stroke-width: 2;
     transform-box: fill-box;
     transform-origin: center;
-    transition: all 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 2px 4px rgba(227, 30, 38, 0.15));
 }
 
 .city:hover .city-marker {
-    width: 16px;
-    height: 16px;
-    background-color: #cc0000;
-    fill: #cc0000;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    width: 13px;
+    height: 13px;
+    fill: #E31E26;
+    filter: drop-shadow(0 3px 6px rgba(227, 30, 38, 0.25));
+    transform: scale(1.05);
+}
+
+.city.active .city-marker {
+    width: 14px;
+    height: 14px;
+    fill: #fff;
+    stroke: #E31E26;
+    stroke-width: 3;
+    filter: drop-shadow(0 4px 8px rgba(227, 30, 38, 0.3));
+    transform: scale(1.1);
+}
+
+.city.in-region .city-marker {
+    stroke: #fff;
+    stroke-width: 3;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 /* Style des noms de villes */
 .city text {
-    font-family: Arial, sans-serif;
-    font-size: 20px;
-    font-weight: bold;
-    fill: #000000;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    fill: #333;
     pointer-events: none;
-    transition: transform 0.2s ease, font-weight 0.2s ease;
-    transform: translateY(15px);
+    transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translateY(20px);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    letter-spacing: 0.2px;
+    opacity: 0.9;
 }
 
 .city:hover text {
-    transform: translateY(15px) scale(1.2);
-    font-weight: 900;
+    font-weight: 600;
+    opacity: 1;
+    transform: translateY(20px) scale(1.02);
+}
+
+/* Style spécifique pour les villes sur zone rouge */
+.city.in-region text {
+    fill: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    opacity: 0.95;
+}
+
+.city.in-region:hover text {
+    fill: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    transform: translateY(20px) scale(1.02);
+}
+
+.city.active text {
+    font-weight: 700;
+    opacity: 1;
+    transform: translateY(20px) scale(1.05);
 }
 
 /* Style pour les boutons AFFICHER */
@@ -106,72 +151,48 @@
     color: #666;
 }
 
-/* Media Queries pour les marqueurs */
+/* Media queries avec transitions ajustées */
 @media screen and (max-width: 1200px) {
     .city text {
-        font-size: 18px;
+        font-size: 15px;
     }
 }
 
 @media screen and (max-width: 991px) {
     .city text {
-        font-size: 16px;
-        transform: translateY(12px);
+        font-size: 14px;
+        transform: translateY(16px);
     }
     
     .city:hover text {
-        transform: translateY(12px) scale(1.1);
+        transform: translateY(16px) scale(1.02);
     }
     
-    .city-marker {
-        width: 8px;
-        height: 8px;
-    }
-    
-    .city:hover .city-marker {
-        width: 14px;
-        height: 14px;
+    .city.active text {
+        transform: translateY(16px) scale(1.05);
     }
 }
 
 @media screen and (max-width: 767px) {
     .city text {
-        font-size: 14px;
-        transform: translateY(10px);
+        font-size: 13px;
+        transform: translateY(14px);
     }
     
-    .city:hover text {
-        transform: translateY(10px) scale(1.1);
-    }
-    
-    .city-marker {
-        width: 6px;
-        height: 6px;
-    }
-    
-    .city:hover .city-marker {
-        width: 12px;
-        height: 12px;
+    .city:hover text,
+    .city.active text {
+        transform: translateY(14px) scale(1.02);
     }
 }
 
 @media screen and (max-width: 480px) {
     .city text {
         font-size: 12px;
-        transform: translateY(8px);
+        transform: translateY(12px);
     }
     
-    .city:hover text {
-        transform: translateY(8px) scale(1.05);
-    }
-    
-    .city-marker {
-        width: 4px;
-        height: 4px;
-    }
-    
-    .city:hover .city-marker {
-        width: 8px;
-        height: 8px;
+    .city:hover text,
+    .city.active text {
+        transform: translateY(12px) scale(1.01);
     }
 } 

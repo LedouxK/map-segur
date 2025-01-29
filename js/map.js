@@ -265,19 +265,16 @@ async function initializeMap() {
             .append("path")
             .attr("class", d => `departement dep-${d.properties.code}`)
             .attr("d", path)
-            .attr("fill", "white")
-            .attr("stroke", "#CCCCCC")
-            .attr("stroke-width", "0.5")
             .on("mouseover", function(event, d) {
                 const franchise = franchises.find(f => f.departements.includes(d.properties.code));
                 if (franchise && (!selectedCity || selectedCity === franchise.ville)) {
-                    highlightDepartements(franchise.ville, true);
+                    d3.select(this).classed("highlighted", true);
                 }
             })
             .on("mouseout", function(event, d) {
                 const franchise = franchises.find(f => f.departements.includes(d.properties.code));
                 if (franchise && !selectedCity) {
-                    highlightDepartements(franchise.ville, false);
+                    d3.select(this).classed("highlighted", false);
                 }
             })
             .on("click", function(event, d) {
@@ -654,25 +651,13 @@ function highlightDepartements(cityName, highlight = true, isSelected = false) {
     const franchise = franchises.find(f => f.ville === cityName);
     if (!franchise) return;
 
-    // Couleurs et styles
-    const baseColor = "white";
-    const highlightColor = "#e31e26"; // Rouge SEGUR
-    const baseStroke = "#CCCCCC";
-    const highlightStroke = "#cc1a21"; // Version plus foncée du rouge SEGUR pour les bordures
-    
-    // Opacités et épaisseurs
-    const fillOpacity = highlight ? (isSelected ? 0.85 : 0.75) : 1;
-    const strokeWidth = highlight ? (isSelected ? "1.5" : "1") : "0.5";
-
     franchise.departements.forEach(depCode => {
-        d3.select(`.dep-${depCode}`)
-            .transition()
-            .duration(200)
-            .attr("fill", highlight ? highlightColor : baseColor)
-            .attr("fill-opacity", fillOpacity)
-            .attr("stroke", highlight ? highlightStroke : baseStroke)
-            .attr("stroke-width", strokeWidth)
-            .style("filter", highlight ? "drop-shadow(0 0 2px rgba(227, 30, 38, 0.3))" : "none");
+        const dep = d3.select(`.dep-${depCode}`);
+        if (highlight) {
+            dep.classed('highlighted', true);
+        } else {
+            dep.classed('highlighted', false);
+        }
     });
 }
 
