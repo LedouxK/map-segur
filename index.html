@@ -3,97 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carte de France - Territoires</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Carte des franchises</title>
+    <link rel="stylesheet" href="css/index.css">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="franchise-panel">
             <div class="franchise-list">
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">BESANÇON</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">BORDEAUX</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">CLERMONT-FERRAND</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">LA ROCHELLE</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">LE MANS</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">MARSEILLE</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">MONTPELLIER</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">NANTES</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">NIMES</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">PAU</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">POITIERS</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">RENNES</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">ROUEN</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
-                </div>
-                <div class="franchise-item">
-                    <div class="franchise-info">
-                        <h3><span class="segur">SEGUR</span><span class="ville">TOURS</span></h3>
-                    </div>
-                    <button class="location-btn">AFFICHER</button>
+                <!-- Message de chargement -->
+                <div class="loading-message">
+                    Chargement des franchises...
                 </div>
             </div>
         </div>
@@ -114,7 +34,6 @@
                         <li><span class="shortcut-key">Double-clic</span>Zoom avant</li>
                         <li><span class="shortcut-key">Shift + Double-clic</span>Zoom arrière</li>
                         <li><span class="shortcut-key">Clic gauche maintenu</span>Déplacer</li>
-                        <li><span class="shortcut-key">Flèches</span>Déplacer</li>
                     </ul>
                 </div>
             </div>

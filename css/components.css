@@ -1,0 +1,537 @@
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: #E31E26;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #c51920;
+}
+
+.btn-outline {
+    border: 1px solid #E31E26;
+    color: #E31E26;
+    background: transparent;
+}
+
+.btn-outline:hover {
+    background: rgba(227, 30, 38, 0.1);
+}
+
+/* Bouton AFFICHER */
+.btn-afficher {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    background: transparent;
+    color: #E31E26;
+    border: 1px solid #E31E26;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.btn-afficher:hover {
+    background: #E31E26;
+    color: white;
+}
+
+/* Liste des franchises */
+.franchise-item {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 25px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    gap: 15px;
+}
+
+.franchise-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: #e31e26;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.franchise-item:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    border-color: rgba(227, 30, 38, 0.15);
+}
+
+.franchise-item:hover::before {
+    opacity: 1;
+}
+
+.franchise-info {
+    flex: 1;
+}
+
+.franchise-info h3 {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.franchise-info .segur {
+    font-size: 18px;
+    color: #E31E26;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.franchise-info .ville {
+    font-size: 24px;
+    color: #333;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.location-btn {
+    background: #ffffff;
+    color: #e31e26;
+    border: 2px solid #e31e26;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.location-btn:hover {
+    background: #e31e26;
+    color: white;
+    box-shadow: 0 4px 12px rgba(227, 30, 38, 0.2);
+}
+
+.location-btn:active {
+    transform: translateY(1px);
+}
+
+/* Badges et étiquettes */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-primary {
+    background: rgba(227, 30, 38, 0.1);
+    color: #E31E26;
+}
+
+/* Icônes */
+.icon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-small {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-large {
+    width: 32px;
+    height: 32px;
+}
+
+/* Formulaires */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #E31E26;
+    outline: none;
+}
+
+/* Messages d'alerte */
+.alert {
+    padding: 15px 20px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.alert-error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+/* Fenêtre de dialogue des franchises */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1999;
+    display: none;
+}
+
+.modal-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.franchise-modal {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 90%;
+    max-width: 600px;
+    display: none;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.franchise-modal.active {
+    display: block;
+}
+
+.modal-header {
+    background: #e31e26;
+    padding: 20px 30px;
+    position: relative;
+}
+
+.modal-title {
+    color: white;
+    font-size: 24px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-title .segur {
+    font-weight: 600;
+}
+
+.modal-close {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.modal-content {
+    display: flex;
+    padding: 0;
+    border: none;
+}
+
+/* Onglets de la fenêtre de dialogue */
+.franchise-tabs {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.franchise-tab {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.franchise-tab:hover {
+    background: #f8f8f8;
+}
+
+.franchise-tab.active {
+    background: #f8f8f8;
+}
+
+.franchise-tab .tab-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.franchise-tab .tab-photo img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.franchise-tab .tab-name {
+    font-size: 22px;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* Détails de la franchise */
+.franchise-details {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.franchise-info-item {
+    margin-bottom: 35px;
+    position: relative;
+    padding-left: 45px;
+}
+
+.franchise-info-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 28px;
+    height: 28px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+}
+
+.franchise-info-item.name::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e31e26"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>');
+}
+
+.franchise-info-item.email::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e31e26"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>');
+}
+
+.franchise-info-item.phone::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e31e26"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>');
+}
+
+.franchise-info-item.departments::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e31e26"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>');
+}
+
+.franchise-info-item label {
+    display: block;
+    font-size: 20px;
+    color: #666;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.franchise-info-item p {
+    font-size: 26px;
+    color: #1a1a1a;
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.franchise-departments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.franchise-departments span {
+    background: #f5f5f5;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 22px;
+    color: #666;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Panneau de détails */
+.franchise-details-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -2px 0 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.franchise-details-panel.active {
+    display: block;
+}
+
+.franchise-details-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    padding: 30px;
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    position: relative;
+}
+
+.card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+}
+
+.card-title .segur {
+    font-size: 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #E31E26;
+}
+
+.card-title .city-name {
+    font-size: 38px;
+    font-weight: 600;
+    color: #E31E26;
+}
+
+.card-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+/* Bouton de fermeture */
+.card-close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+}
+
+.card-close:hover {
+    opacity: 0.5;
+}
+
+.card-close::before,
+.card-close::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 1.5px;
+    background: #333;
+    left: 50%;
+    top: 50%;
+}
+
+.card-close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.card-close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+@media screen and (max-width: 768px) {
+    .franchise-details-panel {
+        width: 100%;
+        height: 80vh;
+        top: auto;
+        bottom: 0;
+    }
+
+    .card-header {
+        padding: 15px;
+    }
+
+    .card-content {
+        padding: 15px;
+    }
+} 

@@ -1,0 +1,112 @@
+/* Conteneur de la carte */
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Styles des marqueurs personnalisés */
+.custom-marker {
+    background: #E31E26;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.custom-marker:hover {
+    transform: scale(1.1);
+}
+
+.custom-marker.active {
+    background: #333;
+    transform: scale(1.2);
+}
+
+/* Popup de la carte */
+.mapboxgl-popup {
+    max-width: 300px;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.popup-header {
+    margin-bottom: 10px;
+}
+
+.popup-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.popup-content p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Contrôles de la carte */
+.mapboxgl-ctrl-group {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.mapboxgl-ctrl-group button {
+    width: 36px;
+    height: 36px;
+}
+
+/* Animation des marqueurs */
+@keyframes dropIn {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.marker-animation {
+    animation: dropIn 0.5s ease-out;
+}
+
+/* Overlay de chargement de la carte */
+.map-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.map-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #E31E26;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+} 

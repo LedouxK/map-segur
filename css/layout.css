@@ -1,0 +1,120 @@
+/* Container principal */
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+/* Panneau des franchises */
+.franchise-panel {
+    width: 350px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #fff;
+    border-right: 1px solid rgba(0,0,0,0.06);
+    position: relative;
+    z-index: 10;
+}
+
+.franchise-list {
+    padding: 20px;
+}
+
+/* Media queries pour le panneau des franchises */
+@media screen and (max-width: 1200px) {
+    .franchise-panel {
+        width: 320px;
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .franchise-panel {
+        width: 300px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .franchise-panel {
+        width: 100%;
+        height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+}
+
+@media screen and (min-width: 1600px) {
+    .franchise-panel {
+        width: 500px;
+    }
+}
+
+/* Map container */
+.map-container {
+    flex: 1;
+    height: 100vh;
+    position: relative;
+    background: white;
+    transition: margin-right 0.3s ease-out;
+    overflow: hidden;
+}
+
+.map-container.shifted {
+    margin-right: 400px;
+}
+
+/* Panneau de détails */
+.franchise-details-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: #fff;
+    display: none;
+    box-shadow: none;
+}
+
+.franchise-details-panel.active {
+    display: block;
+    animation: slideIn 0.3s ease-out;
+}
+
+.franchise-details-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    padding: 30px;
+    background: #fff;
+    border-bottom: none;
+}
+
+.card-content {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Style de la barre de défilement */
+.franchise-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.franchise-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.franchise-panel::-webkit-scrollbar-thumb {
+    background: rgba(227, 30, 38, 0.2);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.franchise-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(227, 30, 38, 0.3);
+} 

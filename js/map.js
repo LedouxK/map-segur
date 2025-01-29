@@ -12,26 +12,179 @@ let startX, startY, startTranslateX, startTranslateY;
 let selectedCity = null; // Variable pour stocker la ville sélectionnée
 let svg = null;
 
-// Test simple au début du fichier, après les variables globales
-console.log("=== TEST CHARGEMENT DEPARTEMENTS ===");
-
-fetch('data/departements.json')
-    .then(response => {
-        console.log("Status de la réponse:", response.status);
-        console.log("OK?", response.ok);
-        return response.json();
-    })
-    .then(data => {
-        console.log("Données chargées:", data);
-        console.log("Type:", typeof data);
-        if (data.features) {
-            console.log("Nombre de départements:", data.features.length);
-            console.log("Premier département:", data.features[0]);
-        }
-    })
-    .catch(error => {
-        console.error("Erreur lors du chargement:", error);
+// Fonction pour générer la liste des franchises
+function generateFranchiseList() {
+    console.log("Génération de la liste des franchises...");
+    const franchiseList = document.querySelector('.franchise-list');
+    
+    if (!franchiseList) {
+        console.error("Élément .franchise-list non trouvé");
+        return;
+    }
+    
+    if (!franchises || !Array.isArray(franchises)) {
+        console.error("Variable franchises non définie ou non valide", franchises);
+        return;
+    }
+    
+    console.log(`${franchises.length} franchises trouvées`);
+    franchiseList.innerHTML = ''; // Vider la liste existante
+    
+    franchises.forEach(franchise => {
+        const franchiseItem = document.createElement('div');
+        franchiseItem.className = 'franchise-item';
+        
+        const franchiseInfo = document.createElement('div');
+        franchiseInfo.className = 'franchise-info';
+        
+        const title = document.createElement('h3');
+        title.innerHTML = `<span class="segur">SEGUR</span><span class="ville">${franchise.ville}</span>`;
+        
+        const locationBtn = document.createElement('button');
+        locationBtn.className = 'location-btn';
+        locationBtn.textContent = 'AFFICHER';
+        locationBtn.onclick = () => {
+            selectCity(franchise.ville);
+            showFranchiseInfo(franchise.ville);
+            centerOnCity(franchise.ville);
+        };
+        
+        franchiseInfo.appendChild(title);
+        franchiseItem.appendChild(franchiseInfo);
+        franchiseItem.appendChild(locationBtn);
+        franchiseList.appendChild(franchiseItem);
+        
+        // Ajouter les classes d'animation après l'ajout au DOM
+        requestAnimationFrame(() => {
+            franchiseItem.classList.add('transition-all', 'hover-scale', 'animate-slide-in');
+            locationBtn.classList.add('transition-all', 'hover-scale');
+        });
     });
+    
+    console.log("Liste des franchises générée avec succès");
+}
+
+// Initialisation du SVG au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    // Générer la liste des franchises
+    generateFranchiseList();
+
+    // Initialisation du SVG
+    svg = d3.select("#map")
+        .attr("width", width)
+        .attr("height", height);
+
+    viewport = svg.select("#viewport");
+    
+    // Configuration du zoom
+    zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .on('zoom', (event) => {
+            viewport.attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
+
+    // Gestionnaire de début de drag
+    svg.on('mousedown.drag', (event) => {
+        if (event.button === 0) { // Clic gauche uniquement
+            event.preventDefault();
+            event.stopPropagation();
+            isDragging = true;
+            
+            const { translateX, translateY } = getCurrentTransform();
+            startX = event.clientX;
+            startY = event.clientY;
+            startTranslateX = translateX;
+            startTranslateY = translateY;
+            
+            d3.select('#viewport').classed('dragging', true);
+        }
+    });
+
+    // Gestionnaire de mouvement
+    svg.on('mousemove.drag', (event) => {
+        if (isDragging) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dx = event.clientX - startX;
+            const dy = event.clientY - startY;
+            const { scale } = getCurrentTransform();
+            
+            d3.select('#viewport')
+                .attr('transform', `translate(${startTranslateX + dx},${startTranslateY + dy}) scale(${scale})`);
+        }
+    });
+
+    // Gestionnaires de fin de drag
+    svg.on('mouseup.drag', endDrag);
+    svg.on('mouseleave.drag', endDrag);
+
+    // Désactiver la sélection de texte pendant le drag
+    svg.style('user-select', 'none')
+       .style('-webkit-user-select', 'none')
+       .style('-moz-user-select', 'none')
+       .style('-ms-user-select', 'none');
+
+    // Gestionnaires des contrôles de zoom
+    const ZOOM_FACTOR = 1.5;
+
+    // Zoom in
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        const currentTransform = d3.zoomTransform(svg.node());
+        svg.transition()
+            .duration(200)
+            .ease(d3.easeLinear)
+            .call(
+                zoom.transform,
+                d3.zoomIdentity
+                    .translate(currentTransform.x, currentTransform.y)
+                    .scale(currentTransform.k * ZOOM_FACTOR)
+            );
+    });
+
+    // Zoom out
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        const currentTransform = d3.zoomTransform(svg.node());
+        svg.transition()
+            .duration(200)
+            .ease(d3.easeLinear)
+            .call(
+                zoom.transform,
+                d3.zoomIdentity
+                    .translate(currentTransform.x, currentTransform.y)
+                    .scale(currentTransform.k / ZOOM_FACTOR)
+            );
+    });
+
+    // Reset
+    document.getElementById('reset').addEventListener('click', () => {
+        svg.transition()
+            .duration(300)
+            .ease(d3.easeLinear)
+            .call(zoom.transform, d3.zoomIdentity);
+    });
+
+    // Toggle shortcuts
+    document.getElementById('shortcuts-toggle').addEventListener('click', () => {
+        const shortcuts = document.querySelector('.shortcuts-tooltip');
+        shortcuts.classList.toggle('active');
+    });
+
+    // Fermer les raccourcis en cliquant ailleurs
+    document.addEventListener('click', (event) => {
+        if (!event.target.matches('#shortcuts-toggle')) {
+            const shortcuts = document.querySelector('.shortcuts-tooltip');
+            if (shortcuts.classList.contains('active')) {
+                shortcuts.classList.remove('active');
+            }
+        }
+    });
+
+    // Initialisation de la carte
+    initializeMap();
+});
 
 // Fonction pour obtenir les coordonnées d'une ville
 function getCityCoordinates(cityName) {
@@ -80,28 +233,6 @@ height = dimensions.height;
 function calculateOptimalScale(width, height) {
     return Math.min(width, height) * 3.5;
 }
-
-// Initialisation du SVG au chargement de la page
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialisation du SVG
-    svg = d3.select("#map")
-        .attr("width", width)
-        .attr("height", height);
-
-    viewport = svg.select("#viewport");
-    
-    // Configuration du zoom
-    zoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on('zoom', (event) => {
-            viewport.attr('transform', event.transform);
-        });
-
-    svg.call(zoom);
-
-    // Initialisation de la carte
-    initializeMap();
-});
 
 // Fonction d'initialisation de la carte
 async function initializeMap() {
@@ -254,121 +385,6 @@ function getCurrentTransform() {
     }
     
     return { translateX, translateY, scale };
-}
-
-// Fonction d'initialisation de la carte
-async function initializeMap() {
-    try {
-        // 1. Charger les données
-        console.log("Chargement des données...");
-        const [franceData, departementsData] = await Promise.all([
-            fetch('data/fra2021.json').then(r => r.json()),
-            fetch('data/departements.json').then(r => r.json())
-        ]);
-        console.log("Données chargées avec succès");
-
-        // 2. Initialiser la projection
-        projection = d3.geoMercator()
-            .center([FRANCE_CENTER.longitude, FRANCE_CENTER.latitude])
-            .scale(calculateOptimalScale(width, height))
-            .translate([width / 2, height / 2]);
-
-        path = d3.geoPath().projection(projection);
-
-        // 3. Créer le viewport
-        viewport = d3.select("#viewport");
-
-        // 4. Dessiner les départements
-        console.log("Dessin des départements...");
-        const departementsGroup = viewport.append("g")
-            .attr("class", "departements");
-
-        departementsGroup.selectAll("path")
-            .data(departementsData.features)
-            .enter()
-            .append("path")
-            .attr("class", d => `departement dep-${d.properties.code}`)
-            .attr("d", path)
-            .attr("fill", "white")
-            .attr("stroke", "#CCCCCC")
-            .attr("stroke-width", "0.5")
-            .on("mouseover", function(event, d) {
-                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
-                if (franchise && (!selectedCity || selectedCity === franchise.ville)) {
-                    highlightDepartements(franchise.ville, true);
-                }
-            })
-            .on("mouseout", function(event, d) {
-                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
-                if (franchise && !selectedCity) {
-                    highlightDepartements(franchise.ville, false);
-                }
-            })
-            .on("click", function(event, d) {
-                event.stopPropagation();
-                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
-                if (franchise) {
-                    selectCity(franchise.ville);
-                    showFranchiseInfo(franchise.ville);
-                    centerOnCity(franchise.ville);
-                }
-            });
-
-        // 5. Dessiner la France (contour uniquement pour les départements non-français)
-        console.log("Dessin de la France...");
-        viewport.append("path")
-            .datum(franceData)
-            .attr("d", path)
-            .attr("fill", "none")
-            .attr("stroke", "#CCCCCC")
-            .attr("stroke-width", "0.5")
-            .attr("class", "france-border");
-
-        // 6. Ajouter les villes
-        console.log("Ajout des villes...");
-        cityGroups = viewport.selectAll("g.city")
-            .data(cities)
-            .enter()
-            .append("g")
-            .attr("class", "city")
-            .attr("transform", d => `translate(${projection(d.coords)})`)
-            .on("mouseover", function(event, d) {
-                if (!selectedCity) {
-                    console.log("Survol de la ville:", d.name);
-                    highlightDepartements(d.name, true);
-                }
-            })
-            .on("mouseout", function(event, d) {
-                if (!selectedCity) {
-                    highlightDepartements(d.name, false);
-                }
-            })
-            .on("click", function(event, d) {
-                event.stopPropagation();
-                selectCity(d.name);
-                showFranchiseInfo(d.name);
-                centerOnCity(d.name);
-            });
-
-        // Ajouter les cercles pour les villes
-        cityGroups.append("circle")
-            .attr("class", "city-marker")
-            .attr("r", 4);
-
-        // Ajouter les noms des villes
-        cityGroups.append("text")
-            .attr("x", 8)
-            .attr("y", 4)
-            .text(d => d.name);
-
-        // Ajouter l'écouteur d'événement pour le clic sur la carte
-        d3.select("#map").on("click", handleMapClick);
-
-        console.log("Initialisation terminée");
-
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation:", error);
-    }
 }
 
 // Fonction pour normaliser les caractères spéciaux
@@ -552,19 +568,6 @@ function centerOnCity(cityName) {
     }
 }
 
-// Ajouter les écouteurs d'événements aux boutons "AFFICHER"
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.location-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const franchiseItem = e.target.closest('.franchise-item');
-            const segurText = franchiseItem.querySelector('.segur').textContent;
-            const villeText = franchiseItem.querySelector('.ville').textContent;
-            const cityName = segurText + ' ' + villeText;
-            centerOnCity(cityName);
-        });
-    });
-}); 
-
 // Gestion des touches flèches
 document.addEventListener('keydown', (event) => {
     const MOVE_STEP = 50;
@@ -603,71 +606,6 @@ document.addEventListener('keydown', (event) => {
     viewport.attr('transform', `translate(${translateX},${translateY}) scale(${currentScale})`);
     event.preventDefault();
 });
-
-// Création du zoom D3
-zoom = d3.zoom()
-    .scaleExtent([0.5, 8]) // Permettre un zoom plus important
-    .on('zoom', (event) => {
-        d3.select('#viewport')
-            .attr('transform', event.transform);
-    });
-
-// Ajouter les gestionnaires d'événements pour les contrôles de zoom
-document.addEventListener('DOMContentLoaded', () => {
-    const ZOOM_FACTOR = 1.5;
-
-    // Zoom in
-    document.getElementById('zoom-in').addEventListener('click', () => {
-        const currentTransform = d3.zoomTransform(svg.node());
-        svg.transition()
-            .duration(200)
-            .ease(d3.easeLinear)
-            .call(
-                zoomBehavior.transform,
-                d3.zoomIdentity
-                    .translate(currentTransform.x, currentTransform.y)
-                    .scale(currentTransform.k * ZOOM_FACTOR)
-            );
-    });
-
-    // Zoom out
-    document.getElementById('zoom-out').addEventListener('click', () => {
-        const currentTransform = d3.zoomTransform(svg.node());
-        svg.transition()
-            .duration(200)
-            .ease(d3.easeLinear)
-            .call(
-                zoomBehavior.transform,
-                d3.zoomIdentity
-                    .translate(currentTransform.x, currentTransform.y)
-                    .scale(currentTransform.k / ZOOM_FACTOR)
-            );
-    });
-
-    // Reset
-    document.getElementById('reset').addEventListener('click', () => {
-        svg.transition()
-            .duration(300)
-            .ease(d3.easeLinear)
-            .call(zoomBehavior.transform, d3.zoomIdentity);
-    });
-
-    // Toggle shortcuts
-    document.getElementById('shortcuts-toggle').addEventListener('click', () => {
-        const shortcuts = document.querySelector('.shortcuts-tooltip');
-        shortcuts.classList.toggle('active');
-    });
-
-    // Fermer les raccourcis en cliquant ailleurs
-    document.addEventListener('click', (event) => {
-        if (!event.target.matches('#shortcuts-toggle')) {
-            const shortcuts = document.querySelector('.shortcuts-tooltip');
-            if (shortcuts.classList.contains('active')) {
-                shortcuts.classList.remove('active');
-            }
-        }
-    });
-}); 
 
 // Gestion du redimensionnement
 window.addEventListener('resize', () => {
@@ -778,38 +716,6 @@ function handleMapClick(event) {
     }
 }
 
-// Gestionnaire de début de drag
-svg.on('mousedown.drag', (event) => {
-    if (event.button === 0) { // Clic gauche uniquement
-        event.preventDefault();
-        event.stopPropagation();
-        isDragging = true;
-        
-        const { translateX, translateY } = getCurrentTransform();
-        startX = event.clientX;
-        startY = event.clientY;
-        startTranslateX = translateX;
-        startTranslateY = translateY;
-        
-        d3.select('#viewport').classed('dragging', true);
-    }
-});
-
-// Gestionnaire de mouvement
-svg.on('mousemove.drag', (event) => {
-    if (isDragging) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const dx = event.clientX - startX;
-        const dy = event.clientY - startY;
-        const { scale } = getCurrentTransform();
-        
-        d3.select('#viewport')
-            .attr('transform', `translate(${startTranslateX + dx},${startTranslateY + dy}) scale(${scale})`);
-    }
-});
-
 // Gestionnaire de fin de drag
 function endDrag() {
     if (isDragging) {
@@ -817,12 +723,3 @@ function endDrag() {
         d3.select('#viewport').classed('dragging', false);
     }
 }
-
-svg.on('mouseup.drag', endDrag);
-svg.on('mouseleave.drag', endDrag);
-
-// Désactiver la sélection de texte pendant le drag
-svg.style('user-select', 'none')
-   .style('-webkit-user-select', 'none')
-   .style('-moz-user-select', 'none')
-   .style('-ms-user-select', 'none');

@@ -1,0 +1,20 @@
+/* Import des styles de base */
+@import 'base.css';
+
+/* Import des styles de mise en page */
+@import 'layout.css';
+
+/* Import des styles des composants */
+@import 'components.css';
+
+/* Import des styles spécifiques à la carte */
+@import 'map.css';
+
+/* Import des styles des marqueurs */
+@import 'markers.css';
+
+/* Import des styles des contrôles */
+@import 'controls.css';
+
+/* Import des styles responsifs (toujours en dernier) */
+@import 'responsive.css'; 
