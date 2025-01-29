@@ -22,8 +22,8 @@ html, body {
 
 /* Panneau des franchises */
 .franchise-panel {
-    width: 450px;
-    min-width: 450px;
+    width: 350px;
+    min-width: 350px;
     background: #ffffff;
     box-shadow: 2px 0 20px rgba(0,0,0,0.1);
     z-index: 1000;
@@ -42,6 +42,7 @@ html, body {
     position: relative;
     background: white;
     transition: margin-right 0.3s ease-out;
+    overflow: hidden;
 }
 
 .map-container.shifted {
@@ -52,13 +53,13 @@ html, body {
 #map {
     width: 100%;
     height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: block;
 }
 
 #viewport {
-    transform-origin: center center;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
 }
 
 /* Region styles */
@@ -207,21 +208,21 @@ html, body {
 /* Responsive styles */
 @media screen and (max-width: 1200px) {
     .franchise-panel {
-        width: 420px;
-        min-width: 420px;
+        width: 320px;
+        min-width: 320px;
     }
     .zoom-controls, .shortcuts-tooltip {
-        left: 440px; /* Ajustement pour écrans plus petits */
+        left: 340px; /* Ajustement pour écrans plus petits */
     }
 }
 
 @media screen and (max-width: 992px) {
     .franchise-panel {
-        width: 400px;
-        min-width: 400px;
+        width: 300px;
+        min-width: 300px;
     }
     .zoom-controls, .shortcuts-tooltip {
-        left: 420px;
+        left: 320px;
     }
 }
 
@@ -970,4 +971,3 @@ html, body {
 .card-close::after {
     transform: rotate(-45deg);
 }
-

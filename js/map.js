@@ -78,7 +78,7 @@ height = dimensions.height;
 
 // Fonction pour calculer l'échelle optimale
 function calculateOptimalScale(width, height) {
-    return Math.min(width, height) * 2.5;
+    return Math.min(width, height) * 3.5;
 }
 
 // Initialisation du SVG au chargement de la page
@@ -86,17 +86,135 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialisation du SVG
     svg = d3.select("#map")
         .attr("width", width)
-        .attr("height", height)
-        .attr("viewBox", `0 0 ${width} ${height}`)
-        .attr("preserveAspectRatio", "xMidYMid meet")
-        .call(zoomBehavior);
+        .attr("height", height);
 
-    // Désactiver le double-clic par défaut pour le zoom
-    svg.on("dblclick.zoom", null);
+    viewport = svg.select("#viewport");
+    
+    // Configuration du zoom
+    zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .on('zoom', (event) => {
+            viewport.attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
 
     // Initialisation de la carte
     initializeMap();
 });
+
+// Fonction d'initialisation de la carte
+async function initializeMap() {
+    try {
+        // 1. Charger les données
+        console.log("Chargement des données...");
+        const [franceData, departementsData] = await Promise.all([
+            fetch('data/fra2021.json').then(r => r.json()),
+            fetch('data/departements.json').then(r => r.json())
+        ]);
+        console.log("Données chargées avec succès");
+
+        // 2. Configurer la projection
+        projection = d3.geoMercator()
+            .center([2.5, 46.7])
+            .scale(calculateOptimalScale(width, height))
+            .translate([width / 2, height / 2]);
+
+        // 3. Créer le générateur de chemin
+        path = d3.geoPath().projection(projection);
+
+        // 4. Dessiner les départements
+        console.log("Dessin des départements...");
+        const departementsGroup = viewport.append("g")
+            .attr("class", "departements");
+
+        departementsGroup.selectAll("path")
+            .data(departementsData.features)
+            .enter()
+            .append("path")
+            .attr("class", d => `departement dep-${d.properties.code}`)
+            .attr("d", path)
+            .attr("fill", "white")
+            .attr("stroke", "#CCCCCC")
+            .attr("stroke-width", "0.5")
+            .on("mouseover", function(event, d) {
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise && (!selectedCity || selectedCity === franchise.ville)) {
+                    highlightDepartements(franchise.ville, true);
+                }
+            })
+            .on("mouseout", function(event, d) {
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise && !selectedCity) {
+                    highlightDepartements(franchise.ville, false);
+                }
+            })
+            .on("click", function(event, d) {
+                event.stopPropagation();
+                const franchise = franchises.find(f => f.departements.includes(d.properties.code));
+                if (franchise) {
+                    selectCity(franchise.ville);
+                    showFranchiseInfo(franchise.ville);
+                    centerOnCity(franchise.ville);
+                }
+            });
+
+        // 5. Dessiner la France (contour uniquement pour les départements non-français)
+        console.log("Dessin de la France...");
+        viewport.append("path")
+            .datum(franceData)
+            .attr("d", path)
+            .attr("fill", "none")
+            .attr("stroke", "#CCCCCC")
+            .attr("stroke-width", "0.5")
+            .attr("class", "france-border");
+
+        // 6. Ajouter les villes
+        console.log("Ajout des villes...");
+        cityGroups = viewport.selectAll("g.city")
+            .data(cities)
+            .enter()
+            .append("g")
+            .attr("class", "city")
+            .attr("transform", d => `translate(${projection(d.coords)})`)
+            .on("mouseover", function(event, d) {
+                if (!selectedCity) {
+                    console.log("Survol de la ville:", d.name);
+                    highlightDepartements(d.name, true);
+                }
+            })
+            .on("mouseout", function(event, d) {
+                if (!selectedCity) {
+                    highlightDepartements(d.name, false);
+                }
+            })
+            .on("click", function(event, d) {
+                event.stopPropagation();
+                selectCity(d.name);
+                showFranchiseInfo(d.name);
+                centerOnCity(d.name);
+            });
+
+        // Ajouter les cercles pour les villes
+        cityGroups.append("circle")
+            .attr("class", "city-marker")
+            .attr("r", 4);
+
+        // Ajouter les noms des villes
+        cityGroups.append("text")
+            .attr("x", 8)
+            .attr("y", 4)
+            .text(d => d.name);
+
+        // Ajouter l'écouteur d'événement pour le clic sur la carte
+        d3.select("#map").on("click", handleMapClick);
+
+        console.log("Initialisation terminée");
+
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation:", error);
+    }
+}
 
 // Coordonnées des villes
 const cities = [
@@ -487,8 +605,8 @@ document.addEventListener('keydown', (event) => {
 });
 
 // Création du zoom D3
-const zoomBehavior = d3.zoom()
-    .scaleExtent([1, 8])
+zoom = d3.zoom()
+    .scaleExtent([0.5, 8]) // Permettre un zoom plus important
     .on('zoom', (event) => {
         d3.select('#viewport')
             .attr('transform', event.transform);
@@ -558,8 +676,7 @@ window.addEventListener('resize', () => {
     height = dimensions.height;
     
     svg.attr("width", width)
-       .attr("height", height)
-       .attr("viewBox", `0 0 ${width} ${height}`);
+       .attr("height", height);
     
     projection = d3.geoMercator()
         .center([FRANCE_CENTER.longitude, FRANCE_CENTER.latitude])
@@ -576,7 +693,7 @@ window.addEventListener('resize', () => {
         
         svg.transition()
            .duration(300)
-           .call(zoomBehavior.transform, d3.zoomIdentity);
+           .call(zoom.transform, d3.zoomIdentity);
     }
 }); 
 
